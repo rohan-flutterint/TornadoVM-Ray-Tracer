@@ -27,12 +27,12 @@ import uk.ac.manchester.tornado.api.GridScheduler;
 import uk.ac.manchester.tornado.api.TaskGraph;
 import uk.ac.manchester.tornado.api.TornadoBackend;
 import uk.ac.manchester.tornado.api.TornadoExecutionPlan;
-import uk.ac.manchester.tornado.api.TornadoRuntimeInterface;
+import uk.ac.manchester.tornado.api.TornadoRuntime;
 import uk.ac.manchester.tornado.api.WorkerGrid;
 import uk.ac.manchester.tornado.api.WorkerGrid2D;
 import uk.ac.manchester.tornado.api.common.TornadoDevice;
 import uk.ac.manchester.tornado.api.enums.DataTransferMode;
-import uk.ac.manchester.tornado.api.runtime.TornadoRuntime;
+import uk.ac.manchester.tornado.api.runtime.TornadoRuntimeProvider;
 import uk.ac.manchester.tornado.api.types.arrays.FloatArray;
 import uk.ac.manchester.tornado.api.types.arrays.IntArray;
 import uk.ac.manchester.tornado.api.types.collections.VectorFloat;
@@ -115,14 +115,14 @@ public class Benchmark {
         System.out.println("-----------------------------------------");
         System.out.println("Getting Tornado Devices...");
         ArrayList<TornadoDevice> devices = new ArrayList<>();
-        TornadoRuntimeInterface runtimeCI = TornadoRuntime.getTornadoRuntime();
-        int numBackends = runtimeCI.getNumBackends();
+        TornadoRuntime tornadoRuntime = TornadoRuntimeProvider.getTornadoRuntime();
+        int numBackends = tornadoRuntime.getNumBackends();
         int deviceCount = 0;
 
         for (int i = 0; i < numBackends; i++) {
 
-            TornadoBackend driver = runtimeCI.getBackend(i);
-            int numDevices = driver.getDeviceCount();
+            TornadoBackend driver = tornadoRuntime.getBackend(i);
+            int numDevices = driver.getNumDevices();
 
             // Exclude PTX due to unsupported intrinsic (atan2)
             if (driver.getName().toLowerCase().contains("ptx")) {

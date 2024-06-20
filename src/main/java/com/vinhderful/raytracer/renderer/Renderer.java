@@ -106,8 +106,16 @@ public class Renderer {
      *     INPUT BUFFER - 2 element int array containing the dimensions of the skybox image
      *     0 - skybox image width; 1 - skybox image height
      */
-    public static void render(IntArray pixels, IntArray dimensions, FloatArray camera, IntArray rayTracingProperties, VectorFloat4 bodyPositions, VectorFloat bodySizes, VectorFloat4 bodyColors,
-            VectorFloat bodyReflectivities, VectorFloat4 skybox, IntArray skyboxDimensions) {
+    public static void render(IntArray pixels,
+                              IntArray dimensions,
+                              FloatArray camera,
+                              IntArray rayTracingProperties,
+                              VectorFloat4 bodyPositions,
+                              VectorFloat bodySizes,
+                              VectorFloat4 bodyColors,
+                              VectorFloat bodyReflectivities,
+                              VectorFloat4 skybox,
+                              IntArray skyboxDimensions) {
 
         // Relatively to the viewport, the camera will be placed in the middle, with exactly one unit of distance to
         // the viewport calculated by the field of view (camera[5] = fov)
@@ -148,7 +156,7 @@ public class Renderer {
                     // If the hit object is the light source, then simply paint the light source's color
                     // This will give a flat white circle is a white sphere light
                     if (hitIndex == LIGHT_INDEX) {
-                        //                        pixels.set(x + y * width,  Color.toInt(bodyColors.get(LIGHT_INDEX)));
+                        pixels.set(x + y * width,  Color.toInt(bodyColors.get(LIGHT_INDEX)));
                     }
 
                     // If the hit object is not a light source, then compute the pixel color after calculating

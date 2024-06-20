@@ -43,13 +43,13 @@ import uk.ac.manchester.tornado.api.GridScheduler;
 import uk.ac.manchester.tornado.api.TaskGraph;
 import uk.ac.manchester.tornado.api.TornadoBackend;
 import uk.ac.manchester.tornado.api.TornadoExecutionPlan;
-import uk.ac.manchester.tornado.api.TornadoRuntimeInterface;
+import uk.ac.manchester.tornado.api.TornadoRuntime;
 import uk.ac.manchester.tornado.api.WorkerGrid;
 import uk.ac.manchester.tornado.api.WorkerGrid2D;
 import uk.ac.manchester.tornado.api.common.TornadoDevice;
 
 import uk.ac.manchester.tornado.api.enums.DataTransferMode;
-import uk.ac.manchester.tornado.api.runtime.TornadoRuntime;
+import uk.ac.manchester.tornado.api.runtime.TornadoRuntimeProvider;
 import uk.ac.manchester.tornado.api.types.arrays.FloatArray;
 import uk.ac.manchester.tornado.api.types.arrays.IntArray;
 import uk.ac.manchester.tornado.api.types.collections.VectorFloat;
@@ -212,13 +212,10 @@ public class Main {
 
     // Tornado elements
     private ArrayList<TornadoDevice> devices;
-    private TaskGraph ts;
-
     private TornadoExecutionPlan executionPlan;
-
     private GridScheduler grid;
-    private volatile boolean renderWithTornado;
 
+    private volatile boolean renderWithTornado;
     private volatile boolean renderWithJavaStreams;
 
     // PixelWriter and it's format
@@ -320,7 +317,7 @@ public class Main {
     private void setupTornadoTaskGraph() {
 
         // Define task graph
-        ts = new TaskGraph("s0");
+        TaskGraph ts = new TaskGraph("s0");
         ts.transferToDevice(DataTransferMode.EVERY_EXECUTION, IB_camera, IB_rayTracingProperties, IB_bodyPositions);
         ts.transferToDevice(DataTransferMode.FIRST_EXECUTION, IB_dimensions, IB_bodySizes, IB_bodyColors, IB_bodyReflectivities, IB_skybox, IB_skyboxDimensions);
         ts.task("t0", Renderer::render, OB_pixels,
@@ -334,7 +331,6 @@ public class Main {
         worker.setLocalWork(16, 16, 1);
         grid = new GridScheduler();
         grid.setWorkerGrid("s0.t0", worker);
-
         executionPlan = new TornadoExecutionPlan(ts.snapshot());
     }
 
@@ -353,13 +349,13 @@ public class Main {
         deviceDropdown.getItems().add("(Java Parallel Streams) - CPU");
 
         // Get Tornado drivers
-        TornadoRuntimeInterface runtimeCI = TornadoRuntime.getTornadoRuntime();
+        TornadoRuntime runtimeCI = TornadoRuntimeProvider.getTornadoRuntime();
         int numBackends = runtimeCI.getNumBackends();
 
         for (int i = 0; i < numBackends; i++) {
 
             TornadoBackend driver = runtimeCI.getBackend(i);
-            int numDevices = driver.getDeviceCount();
+            int numDevices = driver.getNumDevices();
 
             // Add Tornado devices, perform initial mapping
             for (int j = 0; j < numDevices; j++) {
@@ -371,8 +367,9 @@ public class Main {
                 deviceDropdown.getItems().add(listingName);
 
                 // Perform an initial mapping to avoid runtime lag
-                executionPlan.withDevice(device).withGridScheduler(grid);
-                executionPlan.execute();
+                executionPlan.withDevice(device) //
+                        .withGridScheduler(grid) //
+                        .execute();
             }
         }
 
